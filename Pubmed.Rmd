@@ -1,0 +1,79 @@
+---
+title: "Pubmed"
+author: "Juan Balcazar"
+date: "9/26/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries}
+#install.packages("easyPubMed")
+library(easyPubMed)
+library(data.table)
+library(litsearchr)
+library(rentrez)
+library(xml)
+```
+
+#pass in PUBMED IDs and download abstracts
+```{r}
+library(rentrez)
+    library(xml)
+
+your.ids <- c("26386083","26273372","26066373","25837167","25466451","25013473")
+
+# rentrez function to get the data from pubmed db
+fetch.pubmed <- entrez_fetch(db = "pubmed", id = your.ids,
+                      rettype = "xml", parsed = T)
+# Extract the Abstracts for the respective IDS.  
+abstracts = xpathApply(fetch.pubmed, '//PubmedArticle//Article', function(x)
+                               xmlValue(xmlChildren(x)$Abstract))
+# Change the abstract names with the IDS.
+names(abstracts) <- your.ids
+abstracts
+col.abstracts <- do.call(rbind.data.frame,abstracts)
+dim(col.abstracts)
+write.csv(col.abstracts, file = "test.csv")
+```
+
+
+Not very useful, but can be
+```{r pubmed call, echo=FALSE}
+#query
+my_query <- 'anxiety[KYWD] AND decision-making[KYWD]'
+my_entrez_id <- get_pubmed_ids(my_query)
+
+#fetch
+my_abstracts_txt<- fetch_pubmed_data(my_entrez_id, encoding = "ASCII") #must be asci
+head(my_abstracts_txt)
+
+# optional;: use gsub to remove the tag, also trim long titles
+my_titles <- custom_grep(my_abstracts_xml, "ArticleTitle", "char")
+TTM <- nchar(my_titles) > 75
+my_titles[TTM] <- paste(substr(my_titles[TTM], 1, 300), "...", sep = "")
+
+#extract whole data
+Data <- table_articles_byAuth(pubmed_data = my_abstracts_txt,
+included_authors = "first",
+max_chars = 100,
+autofill = TRUE)
+fwrite(Data, "Anxiety_decison_making.csv")
+
+```
+```{r output as text}
+out.A <- batch_pubmed_download(pubmed_query_string = my_query, 
+                               format = "txt", 
+                               batch_size = 500,
+                               dest_file_prefix = "Anxiety_PM_Meta",
+                               encoding = "UTF8")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r litsearchr}
+naive_results <- import_results(file="pubmed-anxietyord-set.nbib")
+```
+

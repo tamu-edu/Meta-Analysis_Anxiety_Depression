@@ -1,0 +1,69 @@
+---
+title: "abstract_reformatting"
+author: "Juan Balcazar"
+date: '2024-09-03'
+output: html_document
+---
+```{r}
+library(data.table)
+library(dplyr)
+```
+
+#For data that is exported as a CSV from zotero. Steps 1. Download as RIS format
+2. Open RIS in Zotero 3. Export as CSV. 
+```{r}
+#for data that is saved as csv from APA Psyc Info. It assumes all duplicates 
+#tagged. I used Duplicate remove Google sheets ad on. 
+DataCSV <- fread(file = "/Users/juanbalcazar/Downloads/duplicates_anxiety_cogflex_APA_AcademicSearch_Eric_april2024.csv")
+
+DataCSV <- DataCSV %>% mutate_all(na_if,"")
+#drop rows with missing titles or abstracts
+library(tidyr)
+DataCSV <-
+DataCSV %>% drop_na(Title)
+DataCSV <-
+DataCSV %>% drop_na(Abstract)
+
+#remove all tagged duplicates
+DataCSV <-
+DataCSV[- grep("Duplicate", DataCSV$Status),] 
+
+#save the prepped file: all cases are complete and no duplicates 
+fwrite(DataCSV, "/Users/juanbalcazar/Downloads/Prepped_anxiety_cogflex_APA_AcademicSearch_Eric_april2024.csv")
+
+```
+
+
+#This code takes the subsequent row and transforms into a column. useful when
+the csv is in a specific format in which abstracts and titles are all in the same row
+```{r}
+#split into column
+Depression_Decison<- 
+  fread(file = "/Users/juanbalcazar/Documents/depression_decisionMaking_APAPSYC_ERIC_AcademicSearchUltimate.csv")
+
+Sample <- fread(file = "/Users/juanbalcazar/Downloads/Title_abstractOnly_depression_cogFlexibility_apaPSYC,ERIC, AcademicUltimate 10:18:2023, 3:18:22 PM.csv")
+
+Depression_Decison <-
+as.data.frame(matrix(Depression_Decison$Title, ncol = 2, byrow = TRUE))
+
+Depression_Decison <-
+Depression_Decison %>%rename(
+    Title = V1,
+    Abstract = V2
+    )
+
+#remove the authors from the title
+Depression_Decison$TitleOnly <- sub("^[^)]*,", "", Depression_Decison$Title, ignore.case = TRUE)
+
+Depression_Decison$TitleOnly <- sub("^[^)]*)", "", Depression_Decison$TitleOnly, ignore.case = TRUE)
+
+library(stringr)
+Depression_Decison$TitleOnly <-
+gsub("\\.", "", Depression_Decison$TitleOnly)
+
+#create individual commands to remove strings until what is left is desired
+#example:
+Depression_Decison$test2 <- as.numeric(stringr::str_remove(Depression_Decison$test, "\\."))
+
+
+```
