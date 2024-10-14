@@ -115,6 +115,10 @@ m.gen
 Outliers_Anxiety_Dec<-
 find.outliers(m.gen)
 Outliers_Anxiety_Dec
+
+#egger's test for funnel plot assymetry
+eggers.test(m.gen)
+
 ```
 
 
@@ -133,6 +137,8 @@ m.gen_anxFlex <- metagen(TE = TE,
 
 m.gen_anxFlex  <- update(m.gen_anxFlex, prediction = TRUE)
 m.gen_anxFlex
+
+eggers.test(m.gen_anxFlex)
 ```
 
 
@@ -156,6 +162,8 @@ m.gen_depressFlex
 Outliers_DepressFlex<-
 find.outliers(m.gen_depressFlex)
 Outliers_DepressFlex
+
+eggers.test(m.gen_depressFlex)
 ```
 
 
@@ -180,6 +188,8 @@ m.gen_depressDecis
 Outliers_DepressDecis<-
 find.outliers(m.gen_depressDecis)
 Outliers_DepressDecis
+
+eggers.test(m.gen_depressDecis)
 ```
 
 Compare the pooled effects, using apriori fixed effects (anxiety, depression)

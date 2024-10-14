@@ -14,22 +14,22 @@ library(dplyr)
 ```{r}
 #for data that is saved as csv from APA Psyc Info. It assumes all duplicates 
 #tagged. I used Duplicate remove Google sheets ad on. 
-DataCSV <- fread(file = "/Users/juanbalcazar/Downloads/duplicates_anxiety_cogflex_APA_AcademicSearch_Eric_april2024.csv")
+DataCSV <- fread(file = "/Users/juanbalcazar/Library/CloudStorage/GoogleDrive-balc557@tamu.edu/Shared drives/CONGAlab/Meta and AI/excel_datasets/need_deduplicate/duplicates_pubmed_depression-cogflex.csv")
 
 DataCSV <- DataCSV %>% mutate_all(na_if,"")
 #drop rows with missing titles or abstracts
 library(tidyr)
 DataCSV <-
-DataCSV %>% drop_na(Title)
+DataCSV %>% drop_na(title)
 DataCSV <-
-DataCSV %>% drop_na(Abstract)
+DataCSV %>% drop_na(abstract)
 
 #remove all tagged duplicates
 DataCSV <-
 DataCSV[- grep("Duplicate", DataCSV$Status),] 
 
 #save the prepped file: all cases are complete and no duplicates 
-fwrite(DataCSV, "/Users/juanbalcazar/Downloads/Prepped_anxiety_cogflex_APA_AcademicSearch_Eric_april2024.csv")
+fwrite(DataCSV, "/Users/juanbalcazar/Downloads/Prepped_depression_cogflex_APA_pubmed.csv")
 
 ```
 
