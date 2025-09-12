@@ -1,0 +1,49 @@
+---
+title: "duplicates"
+author: "Juan Balcazar"
+date: '2024-06-02'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(esc)
+library(meta)
+library(metafor)
+library(dmetar)
+library(data.table)
+library(tidyverse)
+```
+
+## R Markdown
+
+
+```{r data}
+Anxiety_dec<- fread(file = "/Users/juanbalcazar/Downloads/Anxiety_Depression_META - Anxiety_decison_making.csv")
+
+n_occur <- data.frame(table(Anxiety_dec$V5))
+
+All_Duplicates <-
+Anxiety_dec[Anxiety_dec$V5 %in% n_occur$Var1[n_occur$Freq > 1],]
+
+#filter for observations > 1 and less than 9
+SpecificDuplicates <-
+n_occur %>% filter(Freq >1)
+
+
+#new data yet to vet, check for duplicates
+newEntries_AnxietyDecis<- fread(file = "/Users/juanbalcazar/Downloads/NewEntries_AnxietyDecsion - Sheet1.csv")
+
+n_occur <- data.frame(table(newEntries_AnxietyDecis$V5))
+All_Duplicates <-
+newEntries_AnxietyDecis[newEntries_AnxietyDecis$V5 %in% n_occur$Var1[n_occur$Freq > 1],]
+
+#filter for observations > 1 and less than 9
+SpecificDuplicates <-
+n_occur %>% filter(Freq >1)
+
+fwrite(SpecificDuplicates,file = "/Users/juanbalcazar/Downloads/SpecificDuplicates.csv")
+
+
+```
+

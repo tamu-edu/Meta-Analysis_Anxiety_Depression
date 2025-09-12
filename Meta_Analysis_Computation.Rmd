@@ -19,16 +19,36 @@ library(data.table)
 ## FOR WHEN studies only report certain statistics and you want to include them
 #the ESC library helps us convert any weird study to Hedge's g
 #One-way anova
-We can also derive the SMD from the F-value of a one-way ANOVA with two groups. Such ANOVAs can be identified by looking at the degrees of freedom. In a one-way ANOVA with TWO groups, the degrees of freedom should always start with 1 (e.g. F1,147=5.31).
 
-```{r Convert to G, given F-value (2 groups), include=FALSE}
+
+We can also derive the SMD from the F-value of a ANOVA with two groups. Such ANOVAs can be identified by looking at the degrees of freedom. The guide specifically requires it to be a ONE_WAY ANOVA so to be safe only analyze these here.
+
+MUST be one-way AnOVA
+
+Other ANOVAs from a higher order structure can be computed in Psychometrica website
+
+```{r MUST BE ONEWAY ANOVA, Convert to G, given F-value (2 groups), include=FALSE}
 library(esc)
-esc_f(f = 6.95,      # F value of the one-way anova (2 groups)
-      grp1n = 26,   # sample size of group 1 (which is "experimental" does not matter in this calculation) 
-      grp2n = 47,   # sample size of group 2
-      es.type = "g") # convert to Hedges' g; use "d" for SMD
+esc_f(f = 12.48,      # F value of the one-way anova (2 groups)
+      grp1n = 19,   # sample size of group 1 (which is "experimental" does not matter in this calculation) 
+      grp2n = 20,   # sample size of group 2
+      es.type = "d") # convert to Hedges' g; use "d" for SMD
 
 ```
+
+
+```{r}
+#first Cohen's d, total sample size
+hedges_g(0.441, 85)
+
+#standard error
+#Syntax
+#se_g <- sqrt((n1 + n2) / (n1 * n2) + (g^2 / (2 * (n1 + n2))))
+se_g <- sqrt(( 41+ 44) / (41 * 44) + (0.441^2 / (2 * (41 + 44))))
+
+```
+
+
 
 #given. Means and SDs. First get the standard error
 ```{r Convert to G, given means, standard error, include=FALSE}
@@ -37,22 +57,24 @@ library(esc)
 #at https://www.allmath.com/standard-error-calculator.php
 
 
-esc_mean_se(grp1n = 24,    # sample in group 1
-            grp1m = 35.94,   # mean of group 1,exp
-            grp1se = 0.54705,  # standard error of group 1
+esc_mean_se(grp1n = 36,    # sample in group 1
+            grp1m = 5.6,   # mean of group 1,exp
+            grp1se = 0.13333,  # standard error of group 1
             
-            grp2n = 39,    # sample in group 2
-            grp2m = 34.98,    # mean of group 2
-            grp2se = 0.32186,  # standard error of group 2
+            grp2n = 55,    # sample in group 2
+            grp2m = -1.9,    # mean of group 2
+            grp2se = 0.09439,  # standard error of group 2
           
             es.type = "g") # use "g" for Hedges' g
 ```
 
 #given p-value and Cohen's D, we can calculate both the SE and hedges G
+#this calculation is not consistent with Hedges from Mean/SE
 ```{r GIVEN p-value and Cohen's d, include=FALSE}
-se.from.p(0.1,
-          p = 0.707,
-          N = 189,
+#first effect size, then, pvalue, then total sample size
+se.from.p(0.9,
+          p = 0.007,
+          N = 40,
           effect.size.type = "difference",
            calculate.g=TRUE)
 ```
@@ -82,20 +104,21 @@ into our meta-gen object.
 library(data.table)
 
 #load data
-AnxietyDecis <- fread (file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Anxiety and Decison-making(2).csv")
+AnxietyDecis <- fread (file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Anxiety and Decison-making(5).csv")
 
-AnxietyFlex <- fread(file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Anxiety and Cognitive Flexiblity(1).csv")
+AnxietyFlex <- fread(file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Anxiety and Cognitive Flexiblity(4).csv")
 
-DepressDecis <- fread(file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Depression and Decision-making.csv")
+DepressDecis <- fread(file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Depression and Decision-making(5).csv")
 
-DepressFlex <- fread(file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Depression and Cognitive Flexibility.csv")
+DepressFlex <- fread(file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Depression and Cognitive Flexibility(4).csv")
 
-Subgroup_Flex <- fread(file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Subgroup- Flexibility.csv")
+Subgroup_Flex <- fread(file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Subgroup- Flexibility(1).csv")
 
-Subgroup_Decis <- fread(file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Subgroup- Decision-making.csv")
+Subgroup_Decis <- fread(file = "/Users/juanbalcazar/Downloads/PreCal_HedgesG_Meta - Subgroup- Decision-making(4).csv")
 ```
 
 
+Anxiety and Decision-making
 ```{r  Calculation: Calculate Pooled Hedges g pre-calculated Hedges G, include=FALSE}
 ## Anxiety and decision-making
 m.gen <- metagen(TE = TE,
@@ -108,6 +131,8 @@ m.gen <- metagen(TE = TE,
                  method.tau = "REML", #best for continuous outcomes
                  method.random.ci = "HK", # Knapp-Hartung adjustment: reduce the risk of a false positive result.
                  title = "Anxiety and Decision-making")
+
+
 m.gen <- update(m.gen, prediction = TRUE)
 m.gen
 
@@ -121,6 +146,7 @@ eggers.test(m.gen)
 
 ```
 
+Anxiety and Cognitive Flexiblity
 
 ```{r  Calculation: Calculate Pooled Hedges g pre-calculated Hedges G, include=FALSE}
 #Anxiety-CogFlex
@@ -139,9 +165,15 @@ m.gen_anxFlex  <- update(m.gen_anxFlex, prediction = TRUE)
 m.gen_anxFlex
 
 eggers.test(m.gen_anxFlex)
+
+Outliers_Anxiety_Flex<-
+find.outliers(m.gen_anxFlex)
+Outliers_Anxiety_Flex
+
 ```
 
 
+Depression Cogflex
 ```{r  Calculation: Calculate Pooled Hedges g pre-calculated Hedges G, include=FALSE}
 #depression-cogFlex
 m.gen_depressFlex <- metagen(TE = TE,
@@ -166,6 +198,7 @@ Outliers_DepressFlex
 eggers.test(m.gen_depressFlex)
 ```
 
+Depression Decision-making
 
 ```{r  Calculation: Calculate Pooled Hedges g pre-calculated Hedges G, include=FALSE}
 #depression-decision
@@ -226,31 +259,180 @@ subgroupDecis
 
 
 Create Forest plots from each metagen object
-```{r FOREST, include=FALSE}
-plotAnxietyDec <-
-meta::forest(m.gen, 
-             sortvar = TE,
-             
-             prediction = TRUE, 
-             print.tau2 = FALSE,
-             leftlabs = c("Author", "g", "SE"))
+Take this code and run it in an Rscript, if you want the plots not in the chunks
 
-plotAnxietyFlex <-
-meta::forest(m.gen_anxFlex, 
-             sortvar = TE,
-             
-             prediction = TRUE, 
-             print.tau2 = FALSE,
-             leftlabs = c("Author", "g", "SE"))
 
-plotDepresFlex <-
-  meta::forest(m.gen_depressFlex, 
-             sortvar = TE,
-             prediction = TRUE, 
-             print.tau2 = FALSE,
-             leftlabs = c("Author", "g", "SE"))
+Anxiety Decison making
+```{r}
+#remove outliers and then plot
+clean_dataAnxietyDecis <- AnxietyDecis[!(AnxietyDecis$Author %in% Outliers_Anxiety_Dec$out.study.random), ]
 
+Cleanm.gen_anxietyDecis <- metagen(TE = TE,
+                 seTE = seTE,
+                 studlab = Author,
+                 data = clean_dataAnxietyDecis,
+                 sm = "SMD", #label (the effect sizes are already SMD, but we can give it a a label)
+                 random = TRUE, #random effects model
+                 fixed = FALSE,
+                 method.tau = "REML", #best for continuous outccomes
+                 method.random.ci = "HK", # Knapp-Hartung adjustment: reduce the risk of a false positive result.
+                 title = "Anxiety and Decision-making")
+
+Cleanm.gen_anxietyDecis  <- update(Cleanm.gen_anxietyDecis, prediction = TRUE)
+Cleanm.gen_anxietyDecis
+
+#plot without outliers
+plotCleanAnxDecis <- forest(
+  Cleanm.gen_anxietyDecis,
+  sortvar = TE,  # Sort the studies based on effect size
+  prediction = TRUE,  # Add prediction interval
+  print.tau2 = FALSE,  # Do not print the heterogeneity measure
+  leftcols = c("studlab", "effect", "seTE"),  # Columns for study labels, effect sizes, and standard errors
+  leftlabs = c("Author", "g", "SE"),  # Custom labels for the left columns
+  rightcols = c("ci", "w.random"),  # Columns for confidence interval and weights (removes 'effect' from right)
+  label.left = "Negative numbers reflect deficit vs. controls",  # Custom label for left side of the plot
+  smlab = "Effect size g (k= 18)",  # Custom summary label with more context
+  col.diamond = "lightblue",  # Lighter cyan for the diamond (summary effect size)
+  col.diamond.lines = "black",  # Line color for the diamond
+  col.square = "lightgreen",  # Lighter green for individual study squares
+  col.square.lines = "black",  # Color for individual square lines
+  fontsize = 14,  # Increase font size for better readability
+  addprediction = TRUE,  # Explicitly add the prediction interval
+  xlim = c(-2, 2),  # Adjust x-axis range
+  gridlines = TRUE  # Add grid lines for better reference
+)
 
 ```
+
+
+Anxiety Flexibility
+```{r}
+
+#remove outliers and then plot
+clean_dataAnxietyFlex <- AnxietyFlex[!(AnxietyFlex$Author %in% Outliers_Anxiety_Flex$out.study.random), ]
+
+Cleanm.gen_anxietyFlex <- metagen(TE = TE,
+                 seTE = seTE,
+                 studlab = Author,
+                 data = clean_dataAnxietyFlex,
+                 sm = "SMD", #label (the effect sizes are already SMD, but we can give it a a label)
+                 random = TRUE, #random effects model
+                 fixed = FALSE,
+                 method.tau = "REML", #best for continuous outccomes
+                 method.random.ci = "HK", # Knapp-Hartung adjustment: reduce the risk of a false positive result.
+                 title = "Anxiety and Flexibility")
+
+Cleanm.gen_anxietyFlex  <- update(Cleanm.gen_anxietyFlex, prediction = TRUE)
+Cleanm.gen_anxietyFlex
+
+#plot without outliers
+plotCleanAnxFlex <- forest(
+  Cleanm.gen_anxietyFlex,
+  sortvar = TE,  # Sort the studies based on effect size
+  prediction = TRUE,  # Add prediction interval
+  print.tau2 = FALSE,  # Do not print the heterogeneity measure
+  leftcols = c("studlab", "effect", "seTE"),  # Columns for study labels, effect sizes, and standard errors
+  leftlabs = c("Author", "g", "SE"),  # Custom labels for the left columns
+  rightcols = c("ci", "w.random"),  # Columns for confidence interval and weights (removes 'effect' from right)
+  label.left = "Negative numbers reflect deficit vs. controls",  # Custom label for left side of the plot
+  smlab = "Effect size g (k= 11)",  # Custom summary label with more context
+  col.diamond = "lightblue",  # Lighter cyan for the diamond (summary effect size)
+  col.diamond.lines = "black",  # Line color for the diamond
+  col.square = "lightgreen",  # Lighter green for individual study squares
+  col.square.lines = "black",  # Color for individual square lines
+  fontsize = 14,  # Increase font size for better readability
+  addprediction = TRUE,  # Explicitly add the prediction interval
+  xlim = c(-2, 2),  # Adjust x-axis range
+  gridlines = TRUE  # Add grid lines for better reference
+)
+
+```
+
+Depression Decision-making
+```{r}
+#remove outliers and then plot
+clean_dataDepresDecis <- DepressDecis[!(DepressDecis$Author %in% Outliers_DepressDecis$out.study.random), ]
+
+Cleanm.gen_depressDecis <- metagen(TE = TE,
+                 seTE = seTE,
+                 studlab = Author,
+                 data = clean_dataDepresDecis,
+                 sm = "SMD", #label (the effect sizes are already SMD, but we can give it a a label)
+                 random = TRUE, #random effects model
+                 fixed = FALSE,
+                 method.tau = "REML", #best for continuous outccomes
+                 method.random.ci = "HK", # Knapp-Hartung adjustment: reduce the risk of a false positive result.
+                 title = "Depression and Decision-making")
+
+Cleanm.gen_depressDecis  <- update(Cleanm.gen_depressDecis, prediction = TRUE)
+Cleanm.gen_depressDecis
+
+#plot without outliers
+
+plotCleanDepresDecis <- forest(
+  Cleanm.gen_depressDecis,
+  sortvar = TE,  # Sort the studies based on effect size
+  prediction = TRUE,  # Add prediction interval
+  print.tau2 = FALSE,  # Do not print the heterogeneity measure
+  leftcols = c("studlab", "effect", "seTE"),  # Columns for study labels, effect sizes, and standard errors
+  leftlabs = c("Author", "g", "SE"),  # Custom labels for the left columns
+  rightcols = c("ci", "w.random"),  # Columns for confidence interval and weights (removes 'effect' from right)
+  label.left = "Negative numbers reflect deficit vs. controls",  # Custom label for left side of the plot
+  smlab = "Effect size g (k= 15)",  # Custom summary label with more context
+  col.diamond = "lightblue",  # Lighter cyan for the diamond (summary effect size)
+  col.diamond.lines = "black",  # Line color for the diamond
+  col.square = "lightgreen",  # Lighter green for individual study squares
+  col.square.lines = "black",  # Color for individual square lines
+  fontsize = 14,  # Increase font size for better readability
+  addprediction = TRUE,  # Explicitly add the prediction interval
+  xlim = c(-2, 2),  # Adjust x-axis range
+  gridlines = TRUE  # Add grid lines for better reference
+)
+
+```
+
+Depression and Cognitive Flexiblity
+
+```{r}
+#remove outliers and then plot
+clean_dataDepresFlex <- DepressFlex[!(DepressFlex$Author %in% Outliers_DepressFlex$out.study.random), ]
+
+Cleanm.gen_depressFlex <- metagen(TE = TE,
+                 seTE = seTE,
+                 studlab = Author,
+                 data = clean_dataDepresFlex,
+                 sm = "SMD", #label (the effect sizes are already SMD, but we can give it a a label)
+                 random = TRUE, #random effects model
+                 fixed = FALSE,
+                 method.tau = "REML", #best for continuous outccomes
+                 method.random.ci = "HK", # Knapp-Hartung adjustment: reduce the risk of a false positive result.
+                 title = "Depression and Decision-making")
+
+Cleanm.gen_depressFlex  <- update(Cleanm.gen_depressFlex, prediction = TRUE)
+Cleanm.gen_depressFlex
+
+#plot without outliers
+plotCleanDepresFlex <- forest(
+  Cleanm.gen_depressFlex,
+  sortvar = TE,  # Sort the studies based on effect size
+  prediction = TRUE,  # Add prediction interval
+  print.tau2 = FALSE,  # Do not print the heterogeneity measure
+  leftcols = c("studlab", "effect", "seTE"),  # Columns for study labels, effect sizes, and standard errors
+  leftlabs = c("Author", "g", "SE"),  # Custom labels for the left columns
+  rightcols = c("ci", "w.random"),  # Columns for confidence interval and weights (removes 'effect' from right)
+  label.left = "Negative numbers reflect deficit vs. controls",  # Custom label for left side of the plot
+  smlab = "Effect size g (k= 18)",  # Custom summary label with more context
+  col.diamond = "lightblue",  # Lighter cyan for the diamond (summary effect size)
+  col.diamond.lines = "black",  # Line color for the diamond
+  col.square = "lightgreen",  # Lighter green for individual study squares
+  col.square.lines = "black",  # Color for individual square lines
+  fontsize = 14,  # Increase font size for better readability
+  addprediction = TRUE,  # Explicitly add the prediction interval
+  xlim = c(-2, 2),  # Adjust x-axis range
+  gridlines = TRUE  # Add grid lines for better reference
+)
+
+```
+
 
 
